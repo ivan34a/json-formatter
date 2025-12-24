@@ -1,0 +1,64 @@
+import requests
+import json
+
+# --- КОНФІГУРАЦІЯ ---
+API_KEY = "ВАШ_SERPAPI_КЛЮЧ"
+SOCIAL_PLATFORMS = [
+    "facebook.com", 
+    "instagram.com", 
+    "linkedin.com", 
+    "twitter.com", 
+    "tiktok.com", 
+    "pinterest.com"
+]
+
+def search_social_media_by_photo(image_url):
+    print(f"🚀 Запуск пошуку для: {image_url}")
+    
+    endpoint = "https://serpapi.com/search"
+    params = {
+        "engine": "google_lens",
+        "url": image_url,
+        "api_key": API_KEY,
+        "hl": "uk"
+    }
+
+    try:
+        response = requests.get(endpoint, params=params)
+        data = response.json()
+        
+        visual_matches = data.get("visual_matches", [])
+        social_results = []
+
+        # Фільтрація результатів за доменами соцмереж
+        for match in visual_matches:
+            link = match.get("link", "").lower()
+            source = match.get("source", "")
+            
+            # Перевіряємо, чи посилання належить до відомих соцмереж
+            if any(platform in link for platform in SOCIAL_PLATFORMS):
+                social_results.append({
+                    "title": match.get("title"),
+                    "link": link,
+                    "source": source
+                })
+
+        return social_results
+
+    except Exception as e:
+        print(f"❌ Помилка: {e}")
+        return []
+
+# --- ПРИКЛАД ЗАПУСКУ ---
+# URL вашого фото (воно має бути доступним в інтернеті)
+target_photo = "URL_ВАШОГО_ФОТО" 
+
+results = search_social_media_by_photo(target_photo)
+
+if results:
+    print(f"\n✅ Знайдено збігів у соцмережах: {len(results)}")
+    for i, res in enumerate(results, 1):
+        print(f"{i}. [{res['source']}] {res['title']}")
+        print(f"   Посиланя: {res['link']}\n")
+else:
+    print("\nℹ️ Збігів у соціальних мережах не знайдено.")
